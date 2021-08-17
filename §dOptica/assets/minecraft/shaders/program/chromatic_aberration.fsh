@@ -40,7 +40,9 @@ vec4 chromaticAberration( in sampler2D i, in vec2 uv)
 void main()
 {
     #ifdef DEBUG
-        fragColor = vec4(texture2D(DiffuseSampler, texCoord).w);
+        fragColor = texCoord.x > 0.5 ?
+            vec4(texture2D(DiffuseSampler, texCoord).w) :
+            vec4(texture2D(DiffuseSampler, texCoord).xyz, 1.0);
     #elif defined(CHROMATIC_ABERRATION)
         fragColor = chromaticAberration(DiffuseSampler, texCoord);
     #else
