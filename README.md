@@ -14,4 +14,3 @@ Features,
 - Extreme customisation
 
 And much more to come!
-

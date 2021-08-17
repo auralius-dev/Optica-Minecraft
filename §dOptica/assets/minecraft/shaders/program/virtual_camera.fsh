@@ -4,35 +4,18 @@
 /*               MIT License https://opensource.org/licenses/MIT              //
 
 Features,
-    Bokeh blur,
-    Smart auto focus,
-    Color correction,
-    Image filters,
-    Dynamic vignette,
-    Lens distortion,
-    Image noise,
-    Extreme customisation,
-    And much more to come!
+ - Bokeh blur,
+ - Smart auto focus,
+ - Color correction,
+ - Image filters,
+ - Dynamic vignette,
+ - Lens distortion,
+ - Image noise,
+ - Extreme customisation,
+ - And much more to come!
 
-Todo,
-    Shaped bokeh,
-        Hexagonal
-    Natural bokeh artifacts,
-        Onion ring
-        Dirt
-        Fringing - Add toggle
-    Chromatic aberration, - In progress
-        Lateral
-        Longitudinal
-        Focus
-        Constant
-    Fix artifacts at center of bokeh highlights
-    Optimize bokeh a bit more
-    Simple optimization of a few functions.
-    Antialising?
-    Motion blur?
-    
 /////////////////////////////// RESOURCES //////////////////////////////////////
+
 https://photographylife.com/what-is-distortion
 https://tuxedolabs.blogspot.com/2018/05/bokeh-depth-of-field-in-single-pass.html
 github.com/orthecreedence/ghostie/blob/master/opengl/glsl/dof.bokeh.2.4.frag
@@ -53,6 +36,7 @@ uniform sampler2D DiffuseSampler;
 uniform sampler2D DiffuseDepthSampler;
 uniform sampler2D ParticlesDepthSampler;
 uniform sampler2D WeatherDepthSampler;
+
 uniform vec2 InSize;
 uniform float Time;
 
