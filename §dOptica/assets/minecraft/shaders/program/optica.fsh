@@ -45,7 +45,7 @@ in vec2 texCoord;
 out vec4 fragColor;
 
 ///////////////////////////////// DEFINES //////////////////////////////////////
-//     Later these will be converted to variables that can be controlled.     //
+//                                                                            //
 
 // More defines are located in chromatic_aberration.fsh.
 
