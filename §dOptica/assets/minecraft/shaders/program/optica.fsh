@@ -26,6 +26,7 @@ www.siliconstudio.co.jp/rd/presentations/files
     siggraph2015/06_MakingYourBokehFascinating_S2015_Kawase_EN.pdf
  https://www.handprint.com/ASTRO/IMG/seidel1.gif
  https://www.lenstip.com/upload3/4164_zei85_bokeh.jpg
+ https://smallpond.ca/jim/photomicrography/ca/index.html
 
 //////////////////////////////////////////////////////////////////////////////*/
 
@@ -50,9 +51,10 @@ out vec4 fragColor;
 
 // Experimental features.
 //#define DEBUG
-#define DEBUG_SIMPLE
-#define DEBUG_LUMEN
-#define DEBUG_DEPTH
+//#define DEBUG_SIMPLE
+//#define DEBUG_LUMEN
+//#define DEBUG_DEPTH
+//#define DEBUG_GRAY
 
 // Extremely heavy performance impact!
 // Allows focus to effect particles / weather.
@@ -82,10 +84,12 @@ out vec4 fragColor;
 
 // Bokeh blur options.
 #define BLUR_SIZE 20.0
-#define BLUR_QUALITY 0.5
-#define NEAR 1.0
-#define FAR 100.0
+#define BLUR_QUALITY 1.0
 #define FOCAL_PLANE_WIDTH 30.0
+
+// Low quality blur.
+// Not suitable for photos, better for gaming.
+//#define LOW_QUALITY_BLUR
 
 // Color correction.
 #define ADJUST_HUE 0.0
@@ -110,13 +114,16 @@ out vec4 fragColor;
 #define SEPIA_AMOUNT 2.0
 
 // Noise.
-#define NOISE_SENSITIVITY 3.0
+#define NOISE_SENSITIVITY 2.5
 
 ////////////////////////////// MISC DEFINES ////////////////////////////////////
 
 #define sat(x) clamp(x, 0.0, 1.0)
 #define GOLDEN_ANGLE 2.39996
 #define PI 3.14159
+
+#define NEAR 1.0
+#define FAR 100.0
 
 vec2 oneTexel = vec2(1.0) / InSize;
 
@@ -193,6 +200,12 @@ float smartFocus( in vec2 uv, in float s )
     return depth(ac /= t);
 }
 
+vec3 highlights( in vec3 c, in float i )
+{
+    return mix(vec3(0.0), c, max((luma(c) - HIGHLIGHT_THRESHOLD)
+            * HIGHLIGHT_GAIN, 0.0) * max(sqrt(i - (BLUR_SIZE * 0.5)) , 1.5)); 
+}
+
 //    Bokeh blur. Based off of this great blog post by Dennis Gustafsson.     //
 //  tuxedolabs.blogspot.com/2018/05/bokeh-depth-of-field-in-single-pass.html  //
 vec4 blur( in vec2 uv, in float f, in float s )
@@ -209,7 +222,7 @@ vec4 blur( in vec2 uv, in float f, in float s )
     
     float r = BLUR_QUALITY;
     
-    float test;
+    vec3 hc = vec3(0.0);
 
     for (float a = 0.0; r < BLUR_SIZE; a += GOLDEN_ANGLE)
     {
@@ -219,22 +232,25 @@ vec4 blur( in vec2 uv, in float f, in float s )
         #ifdef HIGH_QUALITY_DEPTH
             float sd = adepth(tc) * FAR;
         #else
-            float sd = depth(DiffuseDepthSampler, uv) * FAR;
+            float sd = depth(DiffuseDepthSampler, tc) * FAR;
         #endif
 
         float ss = blurSize(sd, f, s);
         ss = sd > cd ? clamp(ss, 0.0, cs * 2.0) : ss;
         float m = smoothstep(r - 0.5, r + 0.5, ss);
-        vec3 h = mix(vec3(0.0), sc, max((luma(sc) - HIGHLIGHT_THRESHOLD)
-            * HIGHLIGHT_GAIN, 0.0) * max(sqrt(r - (BLUR_SIZE * 0.5)) , 1.5));
+
+        vec3 h = highlights(sc, r);
+        hc += h * m;
 
         ac += mix(ac / t, sc + h, m);
         t += 1.0;
         r += BLUR_QUALITY / r;
-        if (a == 0.0) test = h.x;
-        if (m < 1.0 && a == 0.0) break;
+
+        #ifdef LOW_QUALITY_BLUR
+            if (m == 0.0) break;
+        #endif
     }
-    return vec4(ac /= t, test);
+    return vec4(ac /= t, hc / t);
 }
 
 ///////////////////////////// POST PROCESSING //////////////////////////////////
@@ -621,9 +637,15 @@ void main()
             c = mix(c, vec3(depth(texture2D(DiffuseDepthSampler, uv).x)),
                 smoothstep(0.499, 0.501, uv.x));
         #endif
+        #ifdef DEBUG_GRAY
+            c = vec3(luma(c));
+        #endif
     #endif
 
     //c *= 1.0 - depth(texture2D(DiffuseDepthSampler, uv).x);
-
-    fragColor = vec4(c, bokeh.w);
+    #ifdef BLUR
+        fragColor = vec4(c, bokeh.w);
+    #else
+        fragColor = vec4(c, 0.0);
+    #endif
 }

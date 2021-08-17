@@ -1,4 +1,4 @@
-# OpticaMinecraft
+# Optica
 
 ![Barrel Distortion](https://github.com/auralius-dev/OpticaMinecraft/blob/main/img/1.png)
 

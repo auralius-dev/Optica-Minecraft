@@ -5,7 +5,7 @@
         "dstrgb": "zero"
     },
     "vertex": "screenquad",
-    "fragment": "virtual_camera",
+    "fragment": "optica",
     "attributes": [ "Position" ],
     "samplers": [
         { "name": "DiffuseSampler" },

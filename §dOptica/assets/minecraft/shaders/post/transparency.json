@@ -63,7 +63,7 @@
             ]
         },
         {
-            "name": "virtual_camera",
+            "name": "optica",
             "intarget": "final",
             "outtarget": "shader",
             "auxtargets": [
