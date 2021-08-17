@@ -1,16 +1,38 @@
 ////////// Made by Auralius#6109 | Project started August 12, 2021 /////////////
 //                                   Optica                                   //
 //                               © 2021 Auralius                              //
-//               MIT License https://opensource.org/licenses/MIT              //
-
-/*
+/*               MIT License https://opensource.org/licenses/MIT              //
 
 Features,
-    Bokeh blur.
-    blah blah blah there's a lot of stuff
+    Bokeh blur,
+    Smart auto focus,
+    Color correction,
+    Image filters,
+    Dynamic vignette,
+    Lens distortion,
+    Image noise,
+    Extreme customisation,
+    And much more to come!
 
-
-Resources,
+Todo,
+    Shaped bokeh,
+        Hexagonal
+    Natural bokeh artifacts,
+        Onion ring
+        Dirt
+        Fringing - Add toggle
+    Chromatic aberration, - In progress
+        Lateral
+        Longitudinal
+        Focus
+        Constant
+    Fix artifacts at center of bokeh highlights
+    Optimize bokeh a bit more
+    Simple optimization of a few functions.
+    Antialising?
+    Motion blur?
+    
+/////////////////////////////// RESOURCES //////////////////////////////////////
 https://photographylife.com/what-is-distortion
 https://tuxedolabs.blogspot.com/2018/05/bokeh-depth-of-field-in-single-pass.html
 github.com/orthecreedence/ghostie/blob/master/opengl/glsl/dof.bokeh.2.4.frag
@@ -19,21 +41,11 @@ https://dipaola.org/art/wp-content/uploads/2017/09/cgf2012.pdf
 https://en.wikipedia.org/wiki/Optical_aberration
 www.siliconstudio.co.jp/rd/presentations/files
     siggraph2015/06_MakingYourBokehFascinating_S2015_Kawase_EN.pdf
+ https://www.handprint.com/ASTRO/IMG/seidel1.gif
+ https://www.lenstip.com/upload3/4164_zei85_bokeh.jpg
 
-Todo,
-    hexagonal bokeh and others
-    https://www.lenstip.com/upload3/4164_zei85_bokeh.jpg
-    bokeh artifacts.
-    Fix weird artifacts at center of bokeh highlights.
-    Add chromatic abbriation.
+//////////////////////////////////////////////////////////////////////////////*/
 
-    add toggles for,
-        onion ring bokeh,
-        fringed bokeh highlights,
-        lateral chromatic aberration
-        longitudinal chromatic aberration
-        focus chromatic aberration
-*/
 #version 150
 
 uniform sampler2D DiffuseSampler;
@@ -59,7 +71,7 @@ out vec4 fragColor;
 #define DEBUG_DEPTH
 
 // Extremely heavy performance impact!
-// Allows depth testing particles / weather.
+// Allows focus to effect particles / weather.
 //#define HIGH_QUALITY_DEPTH
 
 // Toggle features off and on here.
@@ -133,6 +145,7 @@ float luma( in vec3 c )
 }
 
 // Random float -1.0 - 1.0. | http://www.jstatsoft.org/v08/i14/paper
+// Does not work currently and is unused.
 float random( in float s )
 {
     int x = int(s * 32767);
@@ -162,6 +175,8 @@ float depth( in float s)
     return (2.0 * NEAR) / (FAR + NEAR - s * (FAR - NEAR));
 }
 
+// High quality depth.
+//Later if possible I want this to be in it's own buffer in the shader pipeline.
 float adepth( in vec2 uv )
 {
     float s[3];
@@ -274,7 +289,7 @@ vec3 rgb2hsv( in vec3 rgb )
 
 ///////////////////////////////// Filters //////////////////////////////////////
 
-// Hue-shift, saturation, and value.
+// Hue, saturation, and value.
 vec3 adjust( in vec3 c, in float h, in float s, in float v )
 {
     vec3 o = rgb2hsv(c);
@@ -340,7 +355,7 @@ vec3 sepia( in float s )
 
 ///////////////////////////////// DISTORTION ///////////////////////////////////
 
-// Lens distortion. | https://www.shadertoy.com/view/wtBXRz
+// Lens distortion. Based off of https://www.shadertoy.com/view/wtBXRz
 vec2 lensDistortion(in vec2 uv, in float k1, in float k2, in float r, in bool f)
 {
     uv = uv * 2.0 - 1.0;
