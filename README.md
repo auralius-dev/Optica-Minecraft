@@ -14,3 +14,9 @@ Features,
 - Extreme customisation
 
 And much more to come!
+
+![Barrel Distortion](https://github.com/auralius-dev/OpticaMinecraft/blob/main/img/1.png)
+![Image Noise](https://github.com/auralius-dev/OpticaMinecraft/blob/main/img/2.png)
+![Rain](https://github.com/auralius-dev/OpticaMinecraft/blob/main/img/3.png)
+![Bokeh Highlights](https://github.com/auralius-dev/OpticaMinecraft/blob/main/img/4.png)
+![Unfocused Torch](https://github.com/auralius-dev/OpticaMinecraft/blob/main/img/5.png)
