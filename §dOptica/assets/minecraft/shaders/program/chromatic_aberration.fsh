@@ -14,9 +14,9 @@ out vec4 fragColor;
 // Not implemented yet. Most likely will be implemented in optica.fsh
 //#define LONGITUDINAL_CHROMATIC_ABERRATION
 
-#define SAMPLES 12.0
-#define SCALE 10.0
-#define BOKEH_HIGHLIGHT_SCALE 10.0
+#define SAMPLES 6.0
+#define SCALE 30.0
+#define BOKEH_HIGHLIGHT_SCALE 5.0
 
 #define sat(x) clamp(x, 0.0, 1.0)
 

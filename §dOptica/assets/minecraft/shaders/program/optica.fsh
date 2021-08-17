@@ -86,6 +86,7 @@ out vec4 fragColor;
 #define BLUR_SIZE 20.0
 #define BLUR_QUALITY 1.0
 #define FOCAL_PLANE_WIDTH 30.0
+#define BOKEH_FRINGE
 
 // Low quality blur.
 // Not suitable for photos, better for gaming.
@@ -203,7 +204,13 @@ float smartFocus( in vec2 uv, in float s )
 vec3 highlights( in vec3 c, in float i )
 {
     return mix(vec3(0.0), c, max((luma(c) - HIGHLIGHT_THRESHOLD)
-            * HIGHLIGHT_GAIN, 0.0) * max(sqrt(i - (BLUR_SIZE * 0.5)) , 1.5)); 
+        * HIGHLIGHT_GAIN, 0.0) *
+        #ifdef BOKEH_FRINGE
+            max(sqrt(i - (BLUR_SIZE * 0.5)) , 1.5)
+        #else
+            1.5
+        #endif
+    ); 
 }
 
 //    Bokeh blur. Based off of this great blog post by Dennis Gustafsson.     //
