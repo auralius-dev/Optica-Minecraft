@@ -2,8 +2,11 @@
 
 ![Barrel Distortion](https://github.com/auralius-dev/OpticaMinecraft/blob/main/img/1.png)
 
-**Simulating camera features using GLSL shaders in a vanilla Minecraft resource pack.**\
-This is the Minecraft version of Optica, the open-source camera replacement for VRChat. Anything having to do with shader changes will be applied here first.
+**Simulating camera features using shaders in a vanilla Minecraft resource pack.**\
+
+This is the Minecraft version of Optica, the open-source camera replacement for VRChat.\
+
+Optica is currently not available for VRChat, but will be in the near future. 
 
 # [Direct Download](https://github.com/auralius-dev/Optica-Minecraft/releases/download/v0.1.2/Optica-Minecraftv0.1.2.zip)
 
