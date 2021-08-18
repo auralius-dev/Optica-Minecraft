@@ -5,6 +5,7 @@
 
 Features,
  - Bokeh blur,
+ - Shaped bokeh,
  - Smart auto focus,
  - Color correction,
  - Image filters,
@@ -197,7 +198,8 @@ vec2 oneTexel = vec2(1.0) / InSize;
 const float PI_BLADES = PI / APERTURE_BLADES;
 const float PI_2_BLADES = PI_2 / APERTURE_BLADES;
 const float COS_PI_BLADES = cos(PI_BLADES);
-const float BLADE_ROTATION = (((APERTURE_ROTATE / 360.0) + ((APERTURE_BLADES * PI) / 360.0)) * APERTURE_BLADES) * PI_2_BLADES;
+const float BLADE_ROTATION = (((APERTURE_ROTATE / 360.0)
++ ((APERTURE_BLADES * PI) / 360.0)) * APERTURE_BLADES) * PI_2_BLADES;
 
 ////////////////////////////////// TOOLS ///////////////////////////////////////
 
@@ -218,7 +220,7 @@ float random( in float s )
     return float(x) / 2147483647.0;
 }
 
-////////////////////////////////// BOKEH ////////////////////////////////////////
+////////////////////////////////// BOKEH ///////////////////////////////////////
 
 // Get size of blur based on focal point.
 float blurSize( in float d, in float f, in float s )
@@ -317,7 +319,9 @@ vec4 blur( in vec2 uv, in float f, in float s )
         #else
             float sr = r;
         #endif
-        //vec2 an = vec2(1.0) + vec2(APERTURE_LATERAL_ANAMORPHIC, APERTURE_ANAMORPHIC) * vec2(cos(APERTURE_ROTATE * DEG2RAD), sin(APERTURE_ROTATE * DEG2RAD));
+        //vec2 an = vec2(1.0) + vec2(APERTURE_LATERAL_ANAMORPHIC,
+        //APERTURE_ANAMORPHIC) * vec2(cos(APERTURE_ROTATE * DEG2RAD),
+        //sin(APERTURE_ROTATE * DEG2RAD));
         vec2 tc = uv + vec2(cos(a) *
             APERTURE_LATERAL_ANAMORPHIC, sin(a) * APERTURE_ANAMORPHIC)
             * oneTexel * sr;
