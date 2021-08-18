@@ -16,6 +16,7 @@ Features,
 - Image filters
 - Dynamic vignette
 - Lens distortion
+- Chromatic aberration
 - Image noise
 - Extreme customisation
 
