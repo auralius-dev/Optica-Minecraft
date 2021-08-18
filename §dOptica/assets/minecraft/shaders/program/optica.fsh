@@ -68,7 +68,9 @@ out vec4 fragColor;
 // Smoother focus.
 #define SMART_FOCUS
 // Enable bokeh blur.
-#define BLUR
+#define BOKEH
+// Shaped bokeh. 
+#define BOKEH_SHAPED
 // Barrel distortion and whatnot.
 #define LENS_DISTORTION
 // Vignette that changes based on how close you are to something.
@@ -103,9 +105,9 @@ out vec4 fragColor;
 #define FOCUS_POINT 0.5, 0.5
 
 // Change bokeh blur size. Bigger is slower.
-#define BLUR_SIZE 20.0
+#define BOKEH_SIZE 20.0
 // Higher is worse.
-#define BLUR_QUALITY 1.0
+#define BOKEH_QUALITY 1.0
 // This is a non existing variable in the real world,
 // this adjusts how sharp the focus is. Higher is sharper.
 #define FOCAL_PLANE_WIDTH 30.0
@@ -114,7 +116,24 @@ out vec4 fragColor;
 
 // Low quality blur.
 // Not suitable for photos, better for gaming.
-//#define LOW_QUALITY_BLUR
+//#define LOW_QUALITY_BOKEH
+
+////////////////////////////// APERTURE BLADES /////////////////////////////////
+
+// How many blades the aperture has.
+#define APERTURE_BLADES 5.0
+// Just for fun, makes the blades spin.
+//#define APERTURE_SPIN
+// Change the speed of the blade spin. It's multiplicative, and does not go
+// below 1.0.
+#define APERTURE_SPIN_SPEED 1.0
+// Change the rotation of the blades. 0 - 360deg.
+#define APERTURE_ROTATE 0.0
+
+// Anamorphic aperture. 1.3 is a good value.
+#define APERTURE_ANAMORPHIC 1.0
+// Lateral anamorphic aperture.
+#define APERTURE_LATERAL_ANAMORPHIC 1.0
 
 /////////////////////// COLOR CORRECTION / ADJUSTMENT //////////////////////////
 
@@ -164,13 +183,21 @@ out vec4 fragColor;
 ////////////////////////////// MISC DEFINES ////////////////////////////////////
 
 #define sat(x) clamp(x, 0.0, 1.0)
+
 #define GOLDEN_ANGLE 2.39996
 #define PI 3.14159
+#define PI_2 6.28318
+#define DEG2RAD 0.01745
 
 #define NEAR 1.0
 #define FAR 100.0
 
 vec2 oneTexel = vec2(1.0) / InSize;
+
+const float PI_BLADES = PI / APERTURE_BLADES;
+const float PI_2_BLADES = PI_2 / APERTURE_BLADES;
+const float COS_PI_BLADES = cos(PI_BLADES);
+const float BLADE_ROTATION = (((APERTURE_ROTATE / 360.0) + ((APERTURE_BLADES * PI) / 360.0)) * APERTURE_BLADES) * PI_2_BLADES;
 
 ////////////////////////////////// TOOLS ///////////////////////////////////////
 
@@ -191,13 +218,13 @@ float random( in float s )
     return float(x) / 2147483647.0;
 }
 
-////////////////////////////////// BLUR ////////////////////////////////////////
+////////////////////////////////// BOKEH ////////////////////////////////////////
 
 // Get size of blur based on focal point.
 float blurSize( in float d, in float f, in float s )
 {
     float o = clamp((1.0 / f - 1.0 / d) * s, -1.0, 1.0);
-    return abs(o) * BLUR_SIZE;
+    return abs(o) * BOKEH_SIZE;
 }
 
 // Map depth to linear space.
@@ -250,12 +277,12 @@ vec3 highlights( in vec3 c, in float i )
     c = mix(vec3(0.0), c, max((luma(c) - HIGHLIGHT_THRESHOLD)
         * HIGHLIGHT_GAIN, 0.0) * vec3(BOKEH_HIGHLIGHT_COLOR) *
         #ifdef BOKEH_FRINGE
-            max(sqrt(i - (BLUR_SIZE * 0.5)) , 1.5)
+            max(sqrt(i - (BOKEH_SIZE * 0.5)) , 1.5)
         #else
             1.5
         #endif
     ); 
-    //c -= max(sqrt(i - (BLUR_SIZE * 0.5)) , 1.5);
+    //c -= max(sqrt(i - (BOKEH_SIZE * 0.5)) , 1.5);
     return c;
 }
 
@@ -273,13 +300,27 @@ vec4 blur( in vec2 uv, in float f, in float s )
     vec3 ac = texture2D(DiffuseSampler, uv).xyz;
     float t = 1.0;
     
-    float r = BLUR_QUALITY;
-    
+    float r = BOKEH_QUALITY;
+
     vec3 hc = vec3(0.0);
 
-    for (float a = 0.0; r < BLUR_SIZE; a += GOLDEN_ANGLE)
+    for (float a = 0.0; r < BOKEH_SIZE; a += GOLDEN_ANGLE)
     {
-        vec2 tc = uv + vec2(cos(a), sin(a)) * oneTexel * r;
+        #ifdef BOKEH_SHAPED
+            float sr = r * (COS_PI_BLADES / cos(mod(a +
+            #ifdef APERTURE_SPIN
+                ((Time * PI_2_BLADES) * APERTURE_SPIN_SPEED)
+            #else
+                BLADE_ROTATION
+            #endif
+            , PI_2_BLADES) - PI_BLADES));
+        #else
+            float sr = r;
+        #endif
+        //vec2 an = vec2(1.0) + vec2(APERTURE_LATERAL_ANAMORPHIC, APERTURE_ANAMORPHIC) * vec2(cos(APERTURE_ROTATE * DEG2RAD), sin(APERTURE_ROTATE * DEG2RAD));
+        vec2 tc = uv + vec2(cos(a) *
+            APERTURE_LATERAL_ANAMORPHIC, sin(a) * APERTURE_ANAMORPHIC)
+            * oneTexel * sr;
         vec3 sc = texture2D(DiffuseSampler, tc).xyz;
 
         #ifdef HIGH_QUALITY_DEPTH
@@ -290,16 +331,16 @@ vec4 blur( in vec2 uv, in float f, in float s )
 
         float ss = blurSize(sd, f, s);
         ss = sd > cd ? clamp(ss, 0.0, cs * 2.0) : ss;
-        float m = smoothstep(r - 0.5, r + 0.5, ss);
+        float m = smoothstep(sr - 0.5, sr + 0.5, ss);
 
-        vec3 h = highlights(sc, r);
+        vec3 h = highlights(sc, sr);
         hc += h * m;
 
         ac += mix(ac / t, sc + h, m);
         t += 1.0;
-        r += BLUR_QUALITY / r;
+        r += BOKEH_QUALITY / r;
 
-        #ifdef LOW_QUALITY_BLUR
+        #ifdef LOW_QUALITY_BOKEH
             if (m == 0.0) break;
         #endif
     }
@@ -340,7 +381,7 @@ vec3 rgb2hsv( in vec3 rgb )
     return hsv;
  }
 
-///////////////////////////////// Filters //////////////////////////////////////
+///////////////////////////////// FILTERS //////////////////////////////////////
 
 // Hue, saturation, and value.
 vec3 adjust( in vec3 c, in float h, in float s, in float v )
@@ -595,7 +636,7 @@ void main()
     // Dynamic focus.
     #ifdef SMART_FOCUS
         float focus = smartFocus(vec2(FOCUS_POINT), SMART_FOCUS_SIZE);
-    #elif defined(BLUR)
+    #elif defined(BOKEH)
         float focus = depth(DiffuseDepthSampler, vec2(FOCUS_POINT));
     #endif
 
@@ -614,14 +655,14 @@ void main()
     #endif
 
     // Fallback.
-    #ifdef BLUR
+    #ifdef BOKEH
         vec3 c = vec3(0.0);
     #else
         vec3 c = texture2D(DiffuseSampler, uv).xyz;
     #endif
     
     // Bokeh blur.
-    #ifdef BLUR
+    #ifdef BOKEH
         vec4 bokeh = sat(blur(uv, focus * FAR, FOCAL_PLANE_WIDTH));
         c = bokeh.xyz;
     #endif
@@ -659,7 +700,7 @@ void main()
 
     // Dynamic vignette.
     #ifdef DYNAMIC_VIGNETTE
-        #ifdef BLUR
+        #ifdef BOKEH
             c *= vignette(uv, clamp(1.0 - focus, 0.5, 1.0));
         #endif
     #endif
@@ -696,7 +737,7 @@ void main()
     #endif
 
     //c *= 1.0 - depth(texture2D(DiffuseDepthSampler, uv).x);
-    #ifdef BLUR
+    #ifdef BOKEH
         fragColor = vec4(c, bokeh.w);
     #else
         fragColor = vec4(c, 0.0);
