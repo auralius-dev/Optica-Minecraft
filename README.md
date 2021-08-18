@@ -21,6 +21,8 @@ Features,
 
 And much more to come!
 
+There are a few bugs and not everything is finished, so please report bugs to [issues](https://github.com/auralius-dev/OpticaMinecraft/issues).
+
 ![Image Noise](https://github.com/auralius-dev/OpticaMinecraft/blob/main/img/2.png)
 ![Rain](https://github.com/auralius-dev/OpticaMinecraft/blob/main/img/3.png)
 ![Bokeh Highlights](https://github.com/auralius-dev/OpticaMinecraft/blob/main/img/4.png)

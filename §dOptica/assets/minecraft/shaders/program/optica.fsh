@@ -24,9 +24,10 @@ https://dipaola.org/art/wp-content/uploads/2017/09/cgf2012.pdf
 https://en.wikipedia.org/wiki/Optical_aberration
 www.siliconstudio.co.jp/rd/presentations/files
     siggraph2015/06_MakingYourBokehFascinating_S2015_Kawase_EN.pdf
- https://www.handprint.com/ASTRO/IMG/seidel1.gif
+https://www.handprint.com/ASTRO/ae4.html
  https://www.lenstip.com/upload3/4164_zei85_bokeh.jpg
  https://smallpond.ca/jim/photomicrography/ca/index.html
+slidetodoc.com/lenses-realtime-rendering-of-physically-based-optical-effect
 
 //////////////////////////////////////////////////////////////////////////////*/
 
@@ -44,8 +45,9 @@ uniform float Time;
 in vec2 texCoord;
 out vec4 fragColor;
 
-///////////////////////////////// DEFINES //////////////////////////////////////
-//     Later these will be converted to variables that can be controlled.     //
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////// CONFIG //////////////////////////////////////
+//                  40 different settings to play with!                       //
 
 // More defines are located in chromatic_aberration.fsh.
 
@@ -60,61 +62,104 @@ out vec4 fragColor;
 // Allows focus to effect particles / weather.
 //#define HIGH_QUALITY_DEPTH
 
-// Toggle features off and on here.
+/////////////////////////////////// TOGGLES ////////////////////////////////////
+//                      Uncomment lines to enable them.                       //
+
+// Smoother focus.
 #define SMART_FOCUS
+// Enable bokeh blur.
 #define BLUR
+// Barrel distortion and whatnot.
 #define LENS_DISTORTION
+// Vignette that changes based on how close you are to something.
 #define DYNAMIC_VIGNETTE
+// Adjust hue and saturation.
 #define COLOR_CORRECTION
+// Luminance noise.
 #define NOISE
+// Image filters.
 //#define FILTER
+// Sepia.
 //#define SEPIA
 
-// Bokeh highlight customisation.
-// Highlights have to be emulated due to not having natural emissives.
-#define HIGHLIGHT_THRESHOLD 0.95
-#define HIGHLIGHT_GAIN 100.0
+////////////////////////////// BOKEH HIGHLIGHTS ////////////////////////////////
 
-// Smart focus is smoother.
+// Highlights have to be emulated due to not having natural emissives.
+// The minimum luminosity for something to be an emissive.
+#define HIGHLIGHT_THRESHOLD 0.95
+// How much brighter should highlights be.
+#define HIGHLIGHT_GAIN 100.0
+// Change bokeh highlight color. Not physically based.
+#define BOKEH_HIGHLIGHT_COLOR 1.0, 1.0, 1.0
+
+/////////////////////////////////// FOCUS //////////////////////////////////////
+
+// Higher is worse. I would not change this.
 #define SMART_FOCUS_QUALITY 75.0
+// Lower is sharper.
 #define SMART_FOCUS_SIZE 100.0
 
 // Move the focus point around the screen.
 #define FOCUS_POINT 0.5, 0.5
 
-// Bokeh blur options.
-#define BLUR_SIZE 20.0
+// Change bokeh blur size. Bigger is slower.
+#define BLUR_SIZE 25.0
+// Higher is worse.
 #define BLUR_QUALITY 1.0
+// This is a non existing variable in the real world,
+// this adjusts how sharp the focus is. Higher is sharper.
 #define FOCAL_PLANE_WIDTH 30.0
+// Brightness fringing on bokeh.
+#define BOKEH_FRINGE
 
 // Low quality blur.
 // Not suitable for photos, better for gaming.
 //#define LOW_QUALITY_BLUR
 
-// Color correction.
+/////////////////////// COLOR CORRECTION / ADJUSTMENT //////////////////////////
+
+// Adjust hue. 0.5 = 180deg.
 #define ADJUST_HUE 0.0
+// Adjust saturation. 2.0 = 2x.
 #define ADJUST_SATURATION 1.1
+// Adjust exposure.
 #define ADJUST_EXPOSURE 1.15
+// Adjust contrast.
 #define ADJUST_CONTRAST 1.1
+// Adjust temperature. Currently not mapped to any real world values.
 #define ADJUST_TEMPERATURE 150
 
-// Lens distortion.
+////////////////////////////// LENS DISTORTION /////////////////////////////////
+
+// If distortion should be mapped to sensor or lens size.
 #define LENS_DISTORTION_CIRCULAR true
+// Barrel distortion.
 #define LENS_DISTORTION_BARREL 0.05
+// Pincusion distortion.
 #define LENS_DISTORTION_PINCUSHION 0.0
+// This may be removed later and applied automatically, but as of now you will
+// have to do it manually. Sorry!
 #define LENS_DISTORTION_ZOOM 0.135
 
-// 0 - B&W
-// 1 - Overlay
+////////////////////////////////// FILTERS /////////////////////////////////////
+
+// 0 - B&W     | CONTRAST ???   ???
+// 1 - Overlay | RED      GREEN BLUE
 #define FILTER_TYPE 1
 #define FILTER_PARAMETER 0.0, 0.478, 1.0
+// How much to apply the filter.
 #define FILTER_STRENGTH 1.0
 
 // Sepia.
 #define SEPIA_AMOUNT 2.0
 
+//////////////////////////////////// MISC //////////////////////////////////////
+
 // Noise.
 #define NOISE_SENSITIVITY 2.5
+
+//////////////////////////////////// END ///////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////// MISC DEFINES ////////////////////////////////////
 
@@ -202,8 +247,16 @@ float smartFocus( in vec2 uv, in float s )
 
 vec3 highlights( in vec3 c, in float i )
 {
-    return mix(vec3(0.0), c, max((luma(c) - HIGHLIGHT_THRESHOLD)
-            * HIGHLIGHT_GAIN, 0.0) * max(sqrt(i - (BLUR_SIZE * 0.5)) , 1.5)); 
+    c = mix(vec3(0.0), c, max((luma(c) - HIGHLIGHT_THRESHOLD)
+        * HIGHLIGHT_GAIN, 0.0) * vec3(BOKEH_HIGHLIGHT_COLOR) *
+        #ifdef BOKEH_FRINGE
+            max(sqrt(i - (BLUR_SIZE * 0.5)) , 1.5)
+        #else
+            1.5
+        #endif
+    ); 
+    //c -= max(sqrt(i - (BLUR_SIZE * 0.5)) , 1.5);
+    return c;
 }
 
 //    Bokeh blur. Based off of this great blog post by Dennis Gustafsson.     //

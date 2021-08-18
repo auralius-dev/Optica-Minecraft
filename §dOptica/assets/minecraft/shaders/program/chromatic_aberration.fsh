@@ -7,16 +7,27 @@ uniform sampler2D DiffuseSampler;
 in vec2 texCoord;
 out vec4 fragColor;
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////// CONFIG //////////////////////////////////////
+
 //#define DEBUG
+// Enable chromatic aberration.
 #define CHROMATIC_ABERRATION
+// How much to apply lateral chromatic aberration.
 #define LATERAL_CHROMATIC_ABERRATION 1.0
 
-// Not implemented yet. Most likely will be implemented in optica.fsh
+// Not implemented yet. Most likely will be implemented in optica.fsh.
 //#define LONGITUDINAL_CHROMATIC_ABERRATION
 
-#define SAMPLES 12.0
-#define SCALE 10.0
-#define BOKEH_HIGHLIGHT_SCALE 10.0
+// Amount of samples. You shouldn't change this.
+#define SAMPLES 3.0
+// Scale of lateral chromatic aberration. Lower is higher.
+#define SCALE 30.0
+// Multiply bokeh highlight lateral chromatic aberration.
+#define BOKEH_HIGHLIGHT_SCALE 5.0
+
+//////////////////////////////////// END ///////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 #define sat(x) clamp(x, 0.0, 1.0)
 
