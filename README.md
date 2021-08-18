@@ -11,6 +11,7 @@ Optica is currently not available for VRChat, but will be in the near future.
 
 Features,
 - Bokeh blur
+- Shaped bokeh
 - Smart auto focus
 - Color correction
 - Image filters
@@ -24,6 +25,7 @@ And much more to come!
 
 There are a few bugs and not everything is finished, so please report bugs to [issues](https://github.com/auralius-dev/OpticaMinecraft/issues).
 
+![Shaped Bokeh](https://github.com/auralius-dev/OpticaMinecraft/blob/main/img/6.png)
 ![Image Noise](https://github.com/auralius-dev/OpticaMinecraft/blob/main/img/2.png)
 ![Rain](https://github.com/auralius-dev/OpticaMinecraft/blob/main/img/3.png)
 ![Bokeh Highlights](https://github.com/auralius-dev/OpticaMinecraft/blob/main/img/4.png)
