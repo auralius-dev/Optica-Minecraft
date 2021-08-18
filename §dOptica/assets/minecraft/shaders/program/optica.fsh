@@ -103,7 +103,7 @@ out vec4 fragColor;
 #define FOCUS_POINT 0.5, 0.5
 
 // Change bokeh blur size. Bigger is slower.
-#define BLUR_SIZE 25.0
+#define BLUR_SIZE 20.0
 // Higher is worse.
 #define BLUR_QUALITY 1.0
 // This is a non existing variable in the real world,
