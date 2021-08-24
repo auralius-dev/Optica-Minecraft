@@ -119,6 +119,8 @@ out vec4 fragColor;
 #define BOKEH_FRINGE
 // Causes bokeh edges to be smooth.
 //#define BOKEH_FRINGE_UNDERCORRECTED
+// Causes onion type bokeh.
+//#define BOKEH_ONION
 
 // Low quality blur.
 // Not suitable for photos, better for gaming.
@@ -287,6 +289,7 @@ float smartFocus( in vec2 uv, in float s )
     return depth(ac /= t);
 }
 
+// Optimize this!
 vec3 highlights( in vec3 c, in float i )
 {
     c = mix(vec3(0.0), c, max((luma(c) - HIGHLIGHT_THRESHOLD)
@@ -301,6 +304,16 @@ vec3 highlights( in vec3 c, in float i )
             1.5
         #endif
     );
+    return c;
+}
+
+vec3 onion( in vec3 c, in float i )
+{
+    #ifdef BOKEH_ONION
+        c = mix(vec3(0.0), c, max((luma(c) - HIGHLIGHT_THRESHOLD) * HIGHLIGHT_GAIN, 0.0) * vec3(BOKEH_HIGHLIGHT_COLOR) * (max(floor((mod(i, 5.0)) / 5.0) * 100.0, 1.5)));
+    #else
+        c = vec3(0.0);
+    #endif
     return c;
 }
 
@@ -335,6 +348,7 @@ vec4 blur( in vec2 uv, in float f, in float s )
         #else
             float sr = r;
         #endif
+        
         vec2 tc = uv + vec2(cos(a) *
             APERTURE_LATERAL_ANAMORPHIC, sin(a) * APERTURE_ANAMORPHIC)
             * oneTexel * sr;
@@ -351,9 +365,10 @@ vec4 blur( in vec2 uv, in float f, in float s )
         float m = smoothstep(sr - 0.5, sr + 0.5, ss);
 
         vec3 h = highlights(sc, sr);
+        vec3 o = onion(sc, sr);
         hc += h * m;
 
-        ac += mix(ac / t, sc + h, m);
+        ac += mix(ac / t, sc + h + o, m);
         t += 1.0;
         r += BOKEH_QUALITY / r;
 
